@@ -92,11 +92,13 @@ GestureBinding.instance!.dispatchEvent(p0, null);
 
 接下来分发 `PointerDownEvent` 事件，可以看出此时 `hitTestResult` 就已经非空了，这说明在分发 `PointerAddEvent` 事件后，分发 `PointerDownEvent` 事件前，肯定有对 `HitTestResult` 进行收录的处理。
 
-![img](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/4fc47c06fa464872a33b64932b442640~tplv-k3u1fbpfcp-zoom-in-crop-mark:4536:0:0:0.awebp)
+![img](9.png)
+
+
 
 最后分发  `PointerDownEvent` 事件，然后就出发了单击事件的回调。
 
-![img](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/55728771939644beaeb7191a890eef22~tplv-k3u1fbpfcp-zoom-in-crop-mark:4536:0:0:0.awebp)
+![img](10.png)
 
 ------
 
@@ -105,12 +107,15 @@ GestureBinding.instance!.dispatchEvent(p0, null);
 那接下来看一下 `PointerDownEvent` 事件分发分发前， `HitTestResult` 是如何被收集的。其实想知道这点很简单，`dispatchEvent` 既然要传入 `HitTestResult` 对象，只要通过调试看一下这个对象的来源即可：
  只要往下看两个方法栈，很容易定位到在 `GestureBinding._handlePointerEventImmediately` 方法中当 `event` 是 `PointerDownEvent` 、`PointerSignalEvent`、`PointerHoverEvent` 时，都会创建 `HitTestResult` 对象，在通过 `hitTest` 方法来收集测试结果。
 
-![img](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/8c6d62eb203941adbd3d050b60f4299e~tplv-k3u1fbpfcp-zoom-in-crop-mark:4536:0:0:0.awebp)
+![img](11.png)
+
+
 
 至于  `hitTest` 方法是如何从顶层的 `RenderView` 一层层测试的，这里就不展开了。感兴趣的可以自己调试看看，另外在 《[Flutter 手势探索 - 执掌天下](https://juejin.cn/book/6896378716427911181/section)》的最后一章也有介绍。
+
  其实这样一来，我们如何可以触发这个方法就好了，但可惜它是个私有成员方法。但我们眼睛可以稍微向下瞄一个方法栈，普通成员方法 `GestureBinding.handlePointerEvent` 可以触发这个私有方法。到这里，一个解决方案就应运而生了。
 
-![img](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/27aea9789ba24c97941da37e77fbd990~tplv-k3u1fbpfcp-zoom-in-crop-mark:4536:0:0:0.awebp)
+![img](12.png)
 
 ------
 
@@ -118,9 +123,9 @@ GestureBinding.instance!.dispatchEvent(p0, null);
 
 如下效果所示：通过 `模拟点击` 可以点击右下角的加号按钮，从而让上面黄色区域内的数字自加；通过 `模拟滑动` 让列表滑动。这样我们就实现了`通过代码`来`触发手势事件` 。
 
-|                                                              |                                                              |
-| ------------------------------------------------------------ | ------------------------------------------------------------ |
-| ![img](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/5ed57c2c5bcc49c6bbc5807e21e7c831~tplv-k3u1fbpfcp-zoom-in-crop-mark:4536:0:0:0.awebp) | ![img](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/b9b7dc2a7ca74fd9aa6a0a5663056d60~tplv-k3u1fbpfcp-zoom-in-crop-mark:4536:0:0:0.awebp) |
+|                |                |
+| -------------- | -------------- |
+| ![img](13.png) | ![img](14.png) |
 
 ##### 1. 单击事件
 
@@ -145,7 +150,7 @@ void _pressAdd() {
   GestureBinding.instance!.handlePointerEvent(downPointer);
   GestureBinding.instance!.handlePointerEvent(upPointer);
 }
-复制代码
+
 ```
 
 ------
@@ -191,12 +196,3 @@ void _pressMove() async {
 这样就可以发现：只要我们按照各手势检测器竞技胜利的规则进行模拟处理 `PointerEvent` 事件，就可以`通过代码`完成我们想要触发的手势，是不是感觉非常棒。感觉可以结合一下 `计时器` 通过发送 `一系列手势` 来完成一些引导操作，或者操作演示。
 
 对于一些流程性的测试，或`精准的滑动控制分析` ，用代码模拟会显得更加重要，因为一些性能分析需要控制变量，手动滑动多多少少会有不同，从而影响测试分析的结果。[A 少](https://juejin.cn/user/606586150596360) 也是因此才提出这个问题，那本篇就到这里，希望通过本文你能对 Flutter 的手势有更深切的认识，也希望 Flutter 模拟事件触发，在某个时刻可以帮助到你 ~
-
-
-
-
-
-作者：张风捷特烈
-链接：https://juejin.cn/post/7057680571157184549
-来源：稀土掘金
-著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
